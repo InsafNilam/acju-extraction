@@ -4,6 +4,9 @@ import requests
 from bs4 import BeautifulSoup
 from tqdm import tqdm
 from datetime import datetime
+import time
+import random
+from urllib.robotparser import RobotFileParser
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -17,9 +20,22 @@ from src.utils.date_utils import parse_hijri_day
 class ACJUWebScraper:
     """Scraper for ACJU prayer times PDF links."""
     
-    def __init__(self, base_url=BASE_URL):
+    def __init__(self, base_url=BASE_URL, user_agent="ACJU-Scraper/1.0"):
         self.prayer_base_url = base_url + "prayer-times/"
         self.calendar_url = base_url + "calenders-en/"
+        self.user_agent = user_agent
+        self.headers = {
+            "User-Agent": self.user_agent,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+        }
+    
+    # --- robots.txt compliance ---
+    def can_fetch(self, url):
+        rp = RobotFileParser()
+        rp.set_url(BASE_URL + "robots.txt")
+        rp.read()
+        return rp.can_fetch(self.user_agent, url)
     
     def get_districts(self):
         """
@@ -28,6 +44,10 @@ class ACJUWebScraper:
         Returns:
             list: List of dictionaries containing section and items data
         """
+        if not self.can_fetch(self.prayer_base_url):
+            print("❌ Crawling disallowed by robots.txt")
+            return []
+        
         try:
             response = requests.get(self.prayer_base_url, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
@@ -45,7 +65,8 @@ class ACJUWebScraper:
                 section_data = self._extract_section_data(detail)
                 if section_data:
                     results.append(section_data)
-            
+                time.sleep(random.uniform(0.5, 1.5))
+                
             return results
             
         except requests.exceptions.RequestException as e:
@@ -57,8 +78,11 @@ class ACJUWebScraper:
         Scrapes Hijri and Gregorian date information from ACJU's calendar page.
         Returns a structured dictionary with both Hijri and Gregorian data.
         """
+        if not self.can_fetch(self.prayer_base_url):
+            print("❌ Crawling disallowed by robots.txt")
+            return []
+        
         driver = None
-
         try:
             # 🧩 Setup Chrome in headless mode
             chrome_options = Options()
