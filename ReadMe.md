@@ -61,7 +61,9 @@ pip install -r requirements.txt
 Run the main script:
 
 ```bash
-python -m main
+python -m main --mode prayer
+python -m main --mode calendar
+
 python -m main --month january
 python -m main --month jan
 python -m main --month 1

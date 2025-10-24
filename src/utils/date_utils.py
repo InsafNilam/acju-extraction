@@ -1,6 +1,7 @@
 """Date parsing utilities."""
 
 import re
+from config.settings import HIJRI_MONTHS
 
 
 def parse_date(date_str: str, month: str) -> str:
@@ -23,6 +24,31 @@ def parse_date(date_str: str, month: str) -> str:
     except Exception:
         pass
     return None
+
+def parse_hijri_day(day_text: str, current_month: str):
+    """Parse Hijri day text (e.g., '30' or '30/1') into structured data."""
+    if not day_text:
+        return {"day": None, "month": current_month, "post": None}
+
+    hijri_day, post_day = None, None
+
+    if "/" in day_text:
+        parts = [p.strip() for p in day_text.split("/") if p.strip()]
+        if parts and parts[0].isdigit():
+            hijri_day = int(parts[0])
+        if len(parts) > 1 and parts[1].isdigit():
+            post_day = int(parts[1])
+    elif day_text.isdigit():
+        hijri_day = int(day_text)
+
+    post = None
+    if post_day:
+        current_idx = HIJRI_MONTHS.index(current_month) if current_month in HIJRI_MONTHS else -1
+        if current_idx >= 0:
+            next_month = HIJRI_MONTHS[(current_idx + 1) % len(HIJRI_MONTHS)]
+            post = {"day": post_day, "month": next_month}
+
+    return {"day": hijri_day, "month": current_month, "post": post}
 
 
 def natural_sort_key(s: str):

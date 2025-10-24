@@ -1,6 +1,7 @@
 """Main entry point for prayer times scraper."""
 
 import os
+import json
 import argparse
 
 from config.settings import DOWNLOAD_DIR, OUTPUT_DIR, OUTPUT_FILENAME
@@ -27,12 +28,27 @@ def main():
     """Main execution flow."""
     parser = argparse.ArgumentParser(description="ACJU Prayer Times Downloader & Extractor")
     parser.add_argument(
+        "--mode",
+        choices=["prayer", "calendar"],
+        default="prayer",
+        help="Select mode: 'prayer' to download & extract prayer times, or 'calendar' to scrape today's calendar info."
+    )
+    parser.add_argument(
         "--month",
         nargs="*",
         help="Month(s) to download (e.g., 'jan', 'feb', 'march'). Leave empty for all months.",
     )
     args = parser.parse_args()
+    scraper = ACJUWebScraper()
 
+    if args.mode == "calendar":
+        # --- Run calendar extraction mode ---
+        print("📅 Running ACJU Calendar Scraper...")
+        calendar_data = scraper.get_acju_calendar()
+        print(json.dumps(calendar_data))
+        return
+
+    # --- Run prayer times extraction mode ---
     # Normalize all month inputs
     months = None
     if args.month:
@@ -47,7 +63,6 @@ def main():
     
     # Step 1: Scrape website for PDF links
     print("🌐 Fetching district PDF links from ACJU website...")
-    scraper = ACJUWebScraper()
     scraped_data = scraper.get_districts()
     
     if not scraped_data:

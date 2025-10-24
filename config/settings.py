@@ -1,7 +1,7 @@
 """Configuration settings for the prayer times scraper."""
 
 # URLs
-BASE_URL = "https://www.acju.lk/prayer-times/"
+BASE_URL = "https://www.acju.lk/"
 
 # Directories
 DOWNLOAD_DIR = "data/prayer_times"
@@ -55,6 +55,12 @@ MONTH_NAMES = {
     '07': 'July', '08': 'August', '09': 'September',
     '10': 'October', '11': 'November', '12': 'December'
 }
+
+HIJRI_MONTHS = [
+    "Muharram", "Safar", "Rabi al-Awwal", "Rabi al-Thani",
+    "Jumada al-Awwal", "Jumada al-Thani", "Rajab", "Shaban",
+    "Ramadan", "Shawwal", "Dhu al-Qadah", "Dhu al-Hijjah"
+]
 
 # Request settings
 REQUEST_TIMEOUT = 20  # seconds
