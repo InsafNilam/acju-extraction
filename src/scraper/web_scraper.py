@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from datetime import datetime
 import time
-import os
 import random
 from urllib.robotparser import RobotFileParser
 from selenium import webdriver
@@ -13,7 +12,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import tempfile
 
 from config.settings import BASE_URL, REQUEST_TIMEOUT
 from src.utils.date_utils import parse_hijri_day
@@ -92,9 +90,6 @@ class ACJUWebScraper:
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
 
-            temp_user_data = tempfile.mkdtemp(prefix=f"chrome-profile-{int(time.time())}-")
-            chrome_options.add_argument(f"--user-data-dir={temp_user_data}")
-
             driver = webdriver.Chrome(options=chrome_options)
             driver.get(self.calendar_url)
 
@@ -151,18 +146,7 @@ class ACJUWebScraper:
             return {}
         finally:
             if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
-            
-            # Clean up temp directory
-            if temp_user_data and os.path.exists(temp_user_data):
-                try:
-                    import shutil
-                    shutil.rmtree(temp_user_data, ignore_errors=True)
-                except:
-                    pass
+                driver.quit()
     
     def _extract_section_data(self, detail):
         """
