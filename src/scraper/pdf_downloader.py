@@ -11,6 +11,9 @@ class PDFDownloader:
     """Download PDF files from URLs."""
     
     def __init__(self, download_dir="data/prayer_times", max_retries=3, backoff_factor=2):
+        # Set timezone for the entire process
+        os.environ['TZ'] = 'Asia/Colombo'
+        
         self.download_dir = download_dir
         self.max_retries = max_retries
         self.backoff_factor = backoff_factor

@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 from datetime import datetime
 import time
+import os
 import random
 from urllib.robotparser import RobotFileParser
 from selenium import webdriver
@@ -21,6 +22,9 @@ class ACJUWebScraper:
     """Scraper for ACJU prayer times PDF links."""
     
     def __init__(self, base_url=BASE_URL, user_agent="ACJU-Scraper/1.0"):
+        # Set timezone for the entire process
+        os.environ['TZ'] = 'Asia/Colombo'
+
         self.prayer_base_url = base_url + "prayer-times/"
         self.calendar_url = base_url + "calenders-en/"
         self.user_agent = user_agent
@@ -30,7 +34,6 @@ class ACJUWebScraper:
             "Accept-Language": "en-US,en;q=0.5",
         }
     
-    # --- robots.txt compliance ---
     def can_fetch(self, url):
         rp = RobotFileParser()
         rp.set_url(BASE_URL + "robots.txt")
@@ -49,7 +52,7 @@ class ACJUWebScraper:
             return []
         
         try:
-            response = requests.get(self.prayer_base_url, timeout=REQUEST_TIMEOUT)
+            response = requests.get(self.prayer_base_url, headers=self.headers ,timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
             soup = BeautifulSoup(response.content, 'html.parser')
             
@@ -90,7 +93,20 @@ class ACJUWebScraper:
             chrome_options.add_argument("--no-sandbox")
             chrome_options.add_argument("--disable-dev-shm-usage")
 
+            # Set timezone to Asia/Colombo
+            chrome_options.add_argument("--lang=en-US")
+            chrome_options.add_experimental_option("prefs", {
+                "intl.accept_languages": "en-US,en",
+                "profile.default_content_setting_values.notifications": 2
+            })
+
             driver = webdriver.Chrome(options=chrome_options)
+
+            # Set timezone using Chrome DevTools Protocol
+            driver.execute_cdp_cmd("Emulation.setTimezoneOverride", {
+                "timezoneId": "Asia/Colombo"
+            })
+            
             driver.get(self.calendar_url)
 
             # ⏳ Wait for the calendar to load
